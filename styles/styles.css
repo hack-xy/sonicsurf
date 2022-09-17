@@ -1,0 +1,65 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
+
+* {
+   box-sizing: border-box;
+   font-family: 'Roboto', sans-serif;
+   margin: 0;
+   padding: 0;
+}
+
+.container {
+   display: grid;
+   grid-template-columns: repeat(2, 1fr);
+   height: 100vh;
+}
+
+.container > div {
+   background-color: #252839;
+   border: 1px solid #393d56;
+}
+
+.copy-right {
+   background-color: #c7972b;
+   border-radius: 5px;
+   color: #252839;
+   left: 50%;
+   padding: 20px;
+   position: absolute;
+   text-align: center;
+   top: 50%;
+   transform: translate(-50%, -50%);
+}
+
+/* .copy-right > h1 {
+   margin-bottom: 10px;
+   padding-bottom: 12px;
+} */
+
+.copy-right{
+   padding-bottom: 12px;
+}
+
+.copy-right > span > a {
+   color: #393d56;
+   font-weight: bold;
+}
+
+/* #webgazerVideoContainer{
+   border-radius: 10px;
+} */
+
+/* #webgazerFaceOverlay{
+   border-radius: 10px;
+} */
+
+#webgazerVideoFeed{
+   /* border-radius: 10px; */
+   /* border-top-left-radius: 10px; */
+   border-bottom-left-radius: 10px;
+}
+
+#webgazerFaceFeedbackBox{
+   border-radius: 10px;
+   /* border-top-right-radius: 10px; */
+   /* border-bottom-right-radius: 10px; */
+}
