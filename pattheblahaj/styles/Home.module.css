@@ -7,6 +7,6 @@
 }
 
 .mainContainer {
-    min-height: calc(100vh - 80px);
+    min-height: calc(100vh - 64px);
     @apply flex flex-col justify-between text-gray-200 max-w-7xl mx-auto;
 }

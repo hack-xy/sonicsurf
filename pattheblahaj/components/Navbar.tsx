@@ -1,7 +1,7 @@
 export function Navbar() {
-  return <nav className='h-20 py-2'>
+  return <nav className='h-16 py-2'>
     <div className='btn btn-ghost mx-4'>
-      Pat the blahaj
+      <img src='/logo-png.svg' className="w-40" />
     </div>
   </nav>;
 }
@@ -10,18 +10,32 @@ export function Navbar() {
 
 export function GameNavbar({
   setSettingsDialogOpen,
-  setInformationDialogOpen
+  setInformationDialogOpen,
+  isTrainingComplete
 }: {
   setSettingsDialogOpen: (open: boolean) => void
-  setInformationDialogOpen: (open: boolean) => void
+  setInformationDialogOpen: (open: boolean) => void,
+  isTrainingComplete: boolean
 }) {
-  return <nav className='h-20 py-2 flex justify-between px-3 z-[999999999]'>
+  return <nav className='h-16 py-2 flex items-center justify-between px-3 z-[999999999]'>
     <div className='btn btn-ghost mx-4'>
-      Pat the blahaj
+      <img src='/logo-png.svg' className="w-40" />
     </div>
 
+    <div className="font-extrabold text-transparent text-xl animate-pulse bg-clip-text bg-gradient-to-r from-purple-500 to-pink-600">
+      {isTrainingComplete ? 'GAME MODE' : 'TRAINING MODE'}
+    </div>
+
+
     <div className="flex gap-4">
-      <div className="btn btn-secondary">Start Game</div>
+      <div className="flex text-white justify-center gap-2 items-center px-3 py-2 bg-accent rounded-lg">
+        <img src='/emoji-game.svg' className="w-6" />
+        <div>
+          Score: X
+        </div>
+      </div>
+
+      <button disabled={!isTrainingComplete} className="btn btn-secondary">Start Game</button>
       <div onClick={() => setSettingsDialogOpen(true)} className="btn btn-square btn-accent btn-outline"><SettingsIcon /></div>
       <div onClick={() => setInformationDialogOpen(true)} className="btn btn-square btn-accent btn-outline"><InformationCircleIcon /></div>
     </div>

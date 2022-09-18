@@ -42,7 +42,7 @@ export function StartGameDialog({
                                 handleSubmit(data)
                             }}
                         >
-                            <div className="text-xl font-black text-black text-center">Game settings</div>
+                            <div className="text-xl font-black text-black text-center">Set Difficulty</div>
                             {/* <input onChange={handleDifficultyChange} required className='input w-full' id='name' placeholder='name' /> */}
 
                             <select onChange={handleDifficultyChange} className='select w-full' required id='difficulty'>

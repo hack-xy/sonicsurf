@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react"
+import { toast } from "react-toastify"
 import { GameInfoDialog } from "../components/GameInfoDialog"
 import { GameNavbar, Navbar } from "../components/Navbar"
 import { DifficultyLevel, StartGameDialog } from "../components/StartGameDialog"
@@ -10,11 +11,21 @@ const colors = {
     observedContainer: '#677077'
 }
 
+const positions = {
+    topLeft: "top-[20%] left-[5%]",
+    topRight: "top-[20%] right-[5%]",
+    bottomLeft: "bottom-[20%] left-[5%]",
+    bottomRight: "bottom-[20%] right-[5%]",
+};
+
 
 const Game = () => {
     const status = useScript('/webgazer.js')
     const [isOpen, setIsOpen] = useState(false)
     const [isInfoOpen, setIsInfoOpen] = useState(false)
+    const [trainingCurrentQuad, setTrainingCurrentQuad] = useState<keyof typeof positions>("topLeft")
+    const [isTrainingComplete, setIsTrainingComplete] = useState(false)
+    const [numberOfClicksLeft, setNumberOfClicksLeft] = useState(5)
 
     const [difficulty, setDifficulty] = useState<DifficultyLevel>(DifficultyLevel.Easy)
     // const [isGame]
@@ -31,6 +42,28 @@ const Game = () => {
     const downRight = useRef<HTMLDivElement>(null)
 
 
+    const handleTrainingClick = () => {
+        if(numberOfClicksLeft==1){
+            if(trainingCurrentQuad=="topLeft"){
+                setTrainingCurrentQuad("topRight")
+                setNumberOfClicksLeft(5)
+            } else if(trainingCurrentQuad=="topRight"){
+                setTrainingCurrentQuad("bottomRight")
+                setNumberOfClicksLeft(5)
+            } else if(trainingCurrentQuad=="bottomRight"){
+                setTrainingCurrentQuad("bottomLeft")
+                setNumberOfClicksLeft(5)
+            } else if(trainingCurrentQuad=="bottomLeft"){
+                setIsTrainingComplete(true)
+                toast.success("Training Complete! Start the game whenever ready!")
+                return
+            }
+        }else{
+            setNumberOfClicksLeft(numberOfClicksLeft-1)
+        }
+    }
+
+
     useEffect(() => {
         if (status === 'loading') return;
 
@@ -41,13 +74,10 @@ const Game = () => {
         webgazer.removeMouseEventListeners()
 
         webgazer.setGazeListener((data: any) => {
-
             if (!data) {
                 return
             }
-
             if (!upLeft.current || !upRight.current || !downLeft.current || !downRight.current) return
-
 
             upLeft.current.style.backgroundColor = colors.containerNotObserved
             upRight.current.style.backgroundColor = colors.containerNotObserved
@@ -70,13 +100,18 @@ const Game = () => {
 
         }).begin();
 
+
+
+        console.log('xx')
+        toast.info('Training started! Move your eyes to the corners of the screen (as mentioned) to calibrate the model')
+
     }, [status])
     return (
         <div>
             <GameNavbar
                 setSettingsDialogOpen={setIsOpen}
                 setInformationDialogOpen={setIsInfoOpen}
-
+                isTrainingComplete={isTrainingComplete}
             />
 
             <div className="quadrant">
@@ -101,6 +136,11 @@ const Game = () => {
                 isOpen={isInfoOpen}
                 setIsOpen={setIsInfoOpen}
             />
+
+            {!isTrainingComplete && <div onClick={handleTrainingClick} className={"fixed p-6 select-none bg-clip-text text-transparent z-[9999999] max-w-md text-center font-bold bg-gradient-to-r from-blue-400 to-emerald-400 "+ positions[trainingCurrentQuad]}>
+                Move your eye, and mouse pointer to here (quadrant-{trainingCurrentQuad}) simultaneously and click on the red dot <span className="text-amber-300 text-xl">{numberOfClicksLeft} times</span>
+            </div>}
+
         </div>
     )
 }
