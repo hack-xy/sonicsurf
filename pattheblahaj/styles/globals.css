@@ -35,16 +35,17 @@
   content: "2";
 }
 .down-left::after{
-  content: "3";
+  content: "4";
   padding-left: 10px;
 }
 .down-right::after{
-  content: "4";
+  content: "3";
   position: absolute;
   right:10px;
 }
 
 
 .quadrant div.active{
-  background-color: blue;
+  background: url('/shark.svg') no-repeat center center;
+  background-size: 150px;
 }

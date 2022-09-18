@@ -11,11 +11,15 @@ export function Navbar() {
 export function GameNavbar({
   setSettingsDialogOpen,
   setInformationDialogOpen,
-  isTrainingComplete
+  isTrainingComplete,
+  startGame,
+  currentScore
 }: {
   setSettingsDialogOpen: (open: boolean) => void
   setInformationDialogOpen: (open: boolean) => void,
-  isTrainingComplete: boolean
+  isTrainingComplete: boolean,
+  startGame: () => void,
+  currentScore: number
 }) {
   return <nav className='h-16 py-2 flex items-center justify-between px-3 z-[999999999]'>
     <div className='btn btn-ghost mx-4'>
@@ -31,11 +35,11 @@ export function GameNavbar({
       <div className="flex text-white justify-center gap-2 items-center px-3 py-2 bg-accent rounded-lg">
         <img src='/emoji-game.svg' className="w-6" />
         <div>
-          Score: X
+          Score: {currentScore}
         </div>
       </div>
 
-      <button disabled={!isTrainingComplete} className="btn btn-secondary">Start Game</button>
+      <button disabled={!isTrainingComplete} onClick={startGame} className="btn btn-secondary">Start Game</button>
       <div onClick={() => setSettingsDialogOpen(true)} className="btn btn-square btn-accent btn-outline"><SettingsIcon /></div>
       <div onClick={() => setInformationDialogOpen(true)} className="btn btn-square btn-accent btn-outline"><InformationCircleIcon /></div>
     </div>
