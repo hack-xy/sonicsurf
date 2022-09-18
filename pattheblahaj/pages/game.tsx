@@ -7,8 +7,8 @@ import useScript from "../hooks/useScript"
 
 
 const colors = {
-    containerNotObserved: '#252839',
-    observedContainer: '#677077'
+    containerNotObserved: 'bg-gray-700',
+    observedContainer: 'bg-sky-700'
 }
 
 const positionsToId = {
@@ -17,6 +17,14 @@ const positionsToId = {
     bottomRight: 2,
     bottomLeft: 3,
 }
+
+const idToPositions = {
+    0: 'topLeft',
+    1: 'topRight',
+    2: 'bottomRight',
+    3: 'bottomLeft',
+}
+
 
 const positions = {
     topLeft: "top-[20%] left-[5%]",
@@ -33,20 +41,13 @@ const Game = () => {
     const [trainingCurrentQuad, setTrainingCurrentQuad] = useState<keyof typeof positions>("topLeft")
     const [isTrainingComplete, setIsTrainingComplete] = useState(false)
     const [numberOfClicksLeft, setNumberOfClicksLeft] = useState(5)
-
-
     const [difficulty, setDifficulty] = useState<DifficultyLevel>(DifficultyLevel.Easy)
-    // const [isGame]
+
 
     const [score, setScore] = useState(0)
     const [isGameRunning, setIsGameRunning] = useState(false)
-    const [currentSharkPosition, setCurrentSharkPosition] = useState<keyof typeof positions>("topLeft")
-    const [gazedPositions, setGazedPositions] = useState<Record<number,number>>({
-        0: 0,
-        1: 0,
-        2: 0,
-        3: 0
-    })
+    const [currentSharkPosition, setCurrentSharkPosition] = useState<keyof typeof positions | -1>(-1)
+    const [currentGazedPositions, setCurrentGazedPositions] = useState<number>(0)
 
     const handleStartGame = (data: { name: string, difficulty: DifficultyLevel }) => {
         setIsOpen(false)
@@ -54,11 +55,10 @@ const Game = () => {
         setDifficulty(data.difficulty)
     }
 
-    const upLeft = useRef<HTMLDivElement>(null)
-    const upRight = useRef<HTMLDivElement>(null)
-    const downLeft = useRef<HTMLDivElement>(null)
-    const downRight = useRef<HTMLDivElement>(null)
-    const refs = [upLeft, upRight, downRight, downLeft]
+    const [upLeftClassName, setUpLeftClassName] = useState<string>(colors.containerNotObserved)
+    const [upRightClassName, setUpRightClassName] = useState<string>(colors.containerNotObserved)
+    const [downLeftClassName, setDownLeftClassName] = useState<string>(colors.containerNotObserved)
+    const [downRightClassName, setDownRightClassName] = useState<string>(colors.containerNotObserved)
 
     const handleTrainingClick = () => {
         if (numberOfClicksLeft == 1) {
@@ -87,18 +87,12 @@ const Game = () => {
         // TODO: add a listener 
         (window as any).webgazer.resume()
         setIsGameRunning(true)
-        setGazedPositions({
-            0: 0,
-            1: 0,
-            2: 0,
-            3: 0
-        })
 
-        let interval: ReturnType<typeof setTimeout> | null=null;
+        let interval: ReturnType<typeof setTimeout> | null = null;
 
         // TODO: game difficulty
 
-        const gameStage = () => {
+        const gameStage = async () => {
 
             // generate a random position for the shark
             const randomPosition = Math.floor(Math.random() * 100) % 4;
@@ -106,51 +100,84 @@ const Game = () => {
             // set the shark position
 
             setCurrentSharkPosition(position)
-            refs[randomPosition].current?.classList.add("active");
 
-            (window as any).webgazer.setGazeListener((data: any) => {
-                if (!data) {
-                    return
-                }
-                if (!upLeft.current || !upRight.current || !downLeft.current || !downRight.current) return
-    
-            }).begin()
+            await new Promise((resolve) => setTimeout(resolve, 1000))
+
+            let myLocalGazedPositions = currentGazedPositions;
+            // fix for closure issue
+            setCurrentGazedPositions((val) => {
+                myLocalGazedPositions = val;
+                return val;
+            })
+            console.log(myLocalGazedPositions)
+
+            let totalInstances = 0;
+
+            console.log('myLocalGazedPositions', myLocalGazedPositions)
+
+            // if (totalInstances === 0) {
+            //     toast.warn("You didn't look at the shark! Or maybe the training was incorrect. Please restart if the problem persists.");
+            // }
 
 
-            setTimeout(() => {
-                let totalInstances=0;
-                [0,1,2,3].forEach((key)=>{
-                    totalInstances+=gazedPositions[key]
-                })
-                console.log(totalInstances, gazedPositions)
+            if (myLocalGazedPositions === randomPosition) {
+                setScore(score + 1)
+                // CORRECT
+            } else {
+                // WRONG
+                // STOP GAME
+                setIsGameRunning(false)
+                clearInterval(interval!)
+                toast.error("Game Over! You've scored " + score + " points!")
+                const webgazer = (window as any).webgazer;
+                webgazer.pause();
+            }
 
-
-                if(gazedPositions[randomPosition] >= totalInstances/2){
-                    setScore(score+1)
-                    // CORRECT
-                }else{
-                    // WRONG
-                    // STOP GAME
-                    setIsGameRunning(false)
-                    clearInterval(interval!)
-                    toast.error("Game Over! You've scored "+score+" points!")
-                    const webgazer = (window as any).webgazer;
-                    webgazer.pause();
-                }
-
-                // remove the active class
-                refs[randomPosition].current?.classList.remove("active")
-            }, 1000)
+            // invalidating
+            setCurrentSharkPosition(-1)
 
             // if within 1 second, the gaze is in the same position then increment a point
 
             // else end game!
         }
 
-        interval=setInterval(gameStage, 1500);
+        interval = setInterval(gameStage, 1500);
+
+    }
 
 
-      
+    const gazeHandler = (data: any) => {
+        if (!data) {
+            return
+        }
+
+        setUpLeftClassName(`${colors.containerNotObserved}`)
+        setUpRightClassName(`${colors.containerNotObserved}`)
+        setDownLeftClassName(`${colors.containerNotObserved}`)
+        setDownRightClassName(`${colors.containerNotObserved}`)
+
+
+        const viewportWidth = window.innerWidth
+        const viewportHeight = window.innerHeight
+
+        if (data.x < viewportWidth / 2 && data.y < viewportHeight / 2) {
+            console.log('CurrentQuadrant: 0')
+            setUpLeftClassName(`${colors.observedContainer}`)
+            setCurrentGazedPositions(0)
+        } else if (data.x > viewportWidth / 2 && data.y < viewportHeight / 2) {
+            console.log('CurrentQuadrant: 1')
+            setCurrentGazedPositions(1)
+            setUpRightClassName(`${colors.observedContainer}`)
+        } else if (data.x < viewportWidth / 2 && data.y > viewportHeight / 2) {
+            setDownLeftClassName(`${colors.observedContainer}`)
+            console.log('CurrentQuadrant: 2')
+            setCurrentGazedPositions(3)
+        } else if (data.x > viewportWidth / 2 && data.y > viewportHeight / 2) {
+            setDownRightClassName(`${colors.observedContainer}`)
+            console.log('CurrentQuadrant: 3')
+            setCurrentGazedPositions(2)
+        }
+
     }
 
 
@@ -162,38 +189,7 @@ const Game = () => {
         // webgazer.showFaceOverlay(true)
         // webgazer.setVideoElementCanvas(canvasRef.current)
         webgazer.removeMouseEventListeners()
-
-        webgazer.setGazeListener((data: any) => {
-            if (!data) {
-                return
-            }
-            if (!upLeft.current || !upRight.current || !downLeft.current || !downRight.current) return
-
-            upLeft.current.style.backgroundColor = colors.containerNotObserved
-            upRight.current.style.backgroundColor = colors.containerNotObserved
-            downLeft.current.style.backgroundColor = colors.containerNotObserved
-            downRight.current.style.backgroundColor = colors.containerNotObserved
-
-
-            const viewportWidth = window.innerWidth
-            const viewportHeight = window.innerHeight
-
-            if (data.x < viewportWidth / 2 && data.y < viewportHeight / 2) {
-                upLeft.current.style.backgroundColor = colors.observedContainer
-                if(isGameRunning) setGazedPositions({...gazedPositions, 0: gazedPositions[0] + 1})
-            } else if (data.x > viewportWidth / 2 && data.y < viewportHeight / 2) {
-                if(isGameRunning) setGazedPositions({...gazedPositions, 1: gazedPositions[1] + 1})
-                upRight.current.style.backgroundColor = colors.observedContainer
-            } else if (data.x < viewportWidth / 2 && data.y > viewportHeight / 2) {
-                downLeft.current.style.backgroundColor = colors.observedContainer
-                if(isGameRunning) setGazedPositions({...gazedPositions, 3: gazedPositions[3] + 1})
-            } else if (data.x > viewportWidth / 2 && data.y > viewportHeight / 2) {
-                downRight.current.style.backgroundColor = colors.observedContainer
-                if(isGameRunning) setGazedPositions({...gazedPositions, 2: gazedPositions[2] + 1})
-            }
-
-        }).begin();
-
+        webgazer.setGazeListener(gazeHandler).begin();
 
         toast.info('Training started! Move your eyes to the corners of the screen (as mentioned) to calibrate the model')
 
@@ -206,13 +202,25 @@ const Game = () => {
                 setInformationDialogOpen={setIsInfoOpen}
                 isTrainingComplete={isTrainingComplete}
                 startGame={startGame}
+                isGameRunning={isGameRunning}
             />
 
-            <div className="quadrant">
-                <div ref={upLeft} className="up-left"></div>
-                <div ref={upRight} className="up-right"></div>
-                <div ref={downLeft} className="down-left"></div>
-                <div ref={downRight} className="down-right"></div>
+            <div className="quadrant fixed w-full bottom-0">
+                <div className={`up-left ${upLeftClassName}`}>
+                    {currentSharkPosition === 'topLeft' && <img src="/shark1.svg" className="fixed top-1/4 -translate-y-1/4 w-96" />}
+                </div>
+                <div className={`up-right ${upRightClassName}`}>
+                    {currentSharkPosition === 'topRight' && <img src="/shark1.svg" className="fixed top-1/4 -translate-y-1/4 w-96" />}
+
+                </div>
+                <div className={`down-left ${downLeftClassName}`}>
+                    {currentSharkPosition === 'bottomLeft' && <img src="/shark1.svg" className="fixed top-1/4 -translate-y-1/4 w-96" />}
+
+                </div>
+                <div className={`down-right ${downRightClassName}`}>
+                    {currentSharkPosition === 'bottomRight' && <img src="/shark1.svg" className="fixed top-1/4 -translate-y-1/4 w-96" />}
+
+                </div>
             </div>
 
             {/* <div className="copy-right">

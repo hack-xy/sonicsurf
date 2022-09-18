@@ -13,15 +13,17 @@ export function GameNavbar({
   setInformationDialogOpen,
   isTrainingComplete,
   startGame,
-  currentScore
+  currentScore,
+  isGameRunning
 }: {
   setSettingsDialogOpen: (open: boolean) => void
   setInformationDialogOpen: (open: boolean) => void,
   isTrainingComplete: boolean,
   startGame: () => void,
-  currentScore: number
+  currentScore: number,
+  isGameRunning: boolean
 }) {
-  return <nav className='h-16 py-2 flex items-center justify-between px-3 z-[999999999]'>
+  return <nav className='fixed w-full h-16 py-2 flex items-center justify-between px-3 z-[999999999]'>
     <div className='btn btn-ghost mx-4'>
       <img src='/logo-png.svg' className="w-40" />
     </div>
@@ -39,7 +41,7 @@ export function GameNavbar({
         </div>
       </div>
 
-      <button disabled={!isTrainingComplete} onClick={startGame} className="btn btn-secondary">Start Game</button>
+      <button disabled={!isTrainingComplete || isGameRunning} onClick={startGame} className="btn btn-secondary">{isGameRunning? 'Game Running..': 'Start Game'}</button>
       <div onClick={() => setSettingsDialogOpen(true)} className="btn btn-square btn-accent btn-outline"><SettingsIcon /></div>
       <div onClick={() => setInformationDialogOpen(true)} className="btn btn-square btn-accent btn-outline"><InformationCircleIcon /></div>
     </div>

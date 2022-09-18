@@ -7,7 +7,7 @@ function MyApp({ Component, pageProps }: AppProps) {
   return (
     <>
       <Component {...pageProps} />
-      <ToastContainer autoClose={1500} style={{zIndex: 99999999999999}} />
+      <ToastContainer position='bottom-right' autoClose={1500} style={{zIndex: 99999999999999}} />
     </>
   )
 }
